@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SFW متجر إلكتروني</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+  <style>
+    body {
+      font-family: 'Cairo', sans-serif;
+      direction: rtl;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(to bottom right, #fdfbfb, #ebedee);
+      color: #333;
+    }
+    header {
+      background-color: #ffffffcc;
+      padding: 15px 30px;
+      box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 999;
+    }
+    .welcome {
+      font-size: 22px;
+      font-weight: bold;
+      color: #d63384;
+      animation: glow 2s ease-in-out infinite alternate;
+    }
+    @keyframes glow {
+      from { text-shadow: 0 0 5px #ffc6e0; }
+      to { text-shadow: 0 0 20px #ff99c8; }
+    }
+    .login-form {
+      display: flex;
+      gap: 5px;
+    }
+    .login-form input, .login-form button {
+      padding: 5px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-family: 'Cairo';
+    }
+    h1 {
+      text-align: center;
+      color: #ff4d6d;
+      margin-top: 20px;
+    }
+    #products {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      padding: 20px;
+    }
+    .card {
+      border: 1px solid #ddd;
+      padding: 15px;
+      margin: 10px;
+      background: white;
+      border-radius: 15px;
+      width: 300px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      transition: transform 0.3s, box-shadow 0.3s;
+      position: relative;
+    }
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    }
+    .card img {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      border-radius: 10px;
+    }
+    .order-form {
+      display: none;
+      margin-top: 10px;
+    }
+    .order-form input {
+      margin: 5px 0;
+      width: 100%;
+      padding: 5px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+    .admin-section {
+      display: none;
+      padding: 20px;
+    }
+    table, th, td {
+      border: 1px solid #999;
+      border-collapse: collapse;
+      padding: 8px;
+    }
+    .admin-panel input {
+      margin: 5px 0;
+      width: 100%;
+      padding: 5px;
+    }
+    button {
+      padding: 7px 15px;
+      margin-top: 5px;
+      background-color: #ff4d6d;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: 'Cairo';
+      transition: background-color 0.3s, transform 0.2s;
+    }
+    button:hover {
+      background-color: #c9184a;
+      transform: scale(1.05);
+    }
+    
+    /* التعديلات الجديدة */
+    .product-details {
+      height: 80px;
+      overflow: hidden;
+      position: relative;
+    }
+    .product-details.expanded {
+      height: auto;
+      overflow: visible;
+    }
+    .show-more {
+      color: #ff4d6d;
+      cursor: pointer;
+      text-align: left;
+      margin-top: 5px;
+      font-weight: bold;
+    }
+    .admin-tabs {
+      display: flex;
+      margin-bottom: 20px;
+      border-bottom: 1px solid #ddd;
+    }
+    .admin-tab {
+      padding: 10px 20px;
+      cursor: pointer;
+      background: #f5f5f5;
+      margin-left: 5px;
+      border-radius: 5px 5px 0 0;
+    }
+    .admin-tab.active {
+      background: #ff4d6d;
+      color: white;
+    }
+    .admin-tab-content {
+      display: none;
+    }
+    .admin-tab-content.active {
+      display: block;
+    }
+    .admin-products .card {
+      width: 250px;
+    }
+    .admin-products {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+    .edit-form {
+      display: none;
+      margin-top: 10px;
+      background: #f9f9f9;
+      padding: 10px;
+      border-radius: 8px;
+    }
+    .main-store {
+      display: block;
+    }
+    .admin-logged-in .main-store {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="welcome">🌟 مرحباً بك في SFW! تسوّق بذكاء واكتشف كل جديد! 🌟</div>
+    <div class="login-form">
+      <input type="text" id="adminUser" placeholder="اسم المستخدم">
+      <input type="password" id="adminPass" placeholder="كلمة المرور">
+      <button onclick="loginAdmin()">دخول</button>
+    </div>
+  </header>
+
+  <div class="main-store">
+    <h1>معروضات المتجر</h1>
+    <div id="products"></div>
+  </div>
+
+  <div class="admin-section">
+    <button onclick="logoutAdmin()">خروج الأدمن</button>
+    
+    <div class="admin-tabs">
+      <div class="admin-tab active" onclick="switchAdminTab('products-tab')">معروضات المتجر</div>
+      <div class="admin-tab" onclick="switchAdminTab('add-tab')">إضافة منتج</div>
+      <div class="admin-tab" onclick="switchAdminTab('orders-tab')">طلبات الشراء</div>
+    </div>
+    
+    <div id="products-tab" class="admin-tab-content active">
+      <h2>إدارة معروضات المتجر</h2>
+      <div class="admin-products" id="adminProducts"></div>
+    </div>
+    
+    <div id="add-tab" class="admin-tab-content">
+      <h2>إضافة منتج جديد</h2>
+      <div class="admin-panel">
+        <input type="text" id="productName" placeholder="اسم المنتج">
+        <input type="text" id="productPrice" placeholder="السعر">
+        <textarea id="productDetails" placeholder="التفاصيل" style="width:100%; height:100px; margin:5px 0; padding:5px; border-radius:8px; border:1px solid #ccc;"></textarea>
+        <input type="file" id="productImageFile">
+        <button onclick="addProduct()">إضافة منتج</button>
+      </div>
+    </div>
+    
+    <div id="orders-tab" class="admin-tab-content">
+      <h2>طلبات الشراء</h2>
+      <table id="ordersTable">
+        <tr><th>المنتج</th><th>الكمية</th><th>العميل</th><th>الهاتف</th><th>العنوان</th><th>إجراء</th></tr>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyC0BkNX-62lynXzcGxhLu3QiJLvU4vOQOM",
+      authDomain: "sfw-online-store.firebaseapp.com",
+      databaseURL: "https://sfw-online-store-default-rtdb.firebaseio.com",
+      projectId: "sfw-online-store",
+      storageBucket: "sfw-online-store.appspot.com",
+      messagingSenderId: "98460253065",
+      appId: "1:98460253065:web:2837e86960f8d799cbff58",
+      measurementId: "G-TFRHLFMMJV"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    function renderProducts() {
+      db.ref('products').on('value', snapshot => {
+        const container = document.getElementById('products');
+        container.innerHTML = '';
+        snapshot.forEach(child => {
+          const data = child.val();
+          const key = child.key;
+          const card = document.createElement('div');
+          card.className = 'card';
+          
+          // تقصير التفاصيل إذا كانت طويلة
+          let shortDetails = data.details;
+          let showMoreBtn = '';
+          if (data.details.length > 150) {
+            shortDetails = data.details.substring(0, 150) + '...';
+            showMoreBtn = '<div class="show-more" onclick="toggleDetails(this)">المزيد ▼</div>';
+          }
+          
+          card.innerHTML = `
+            <img src="${data.image}" alt="صورة">
+            <h3>${data.name}</h3>
+            <div class="product-details">${data.details}</div>
+            ${showMoreBtn}
+            <p><strong>${data.price} جنيه</strong></p>
+            <button onclick="toggleOrderForm('${key}', '${data.name}')">طلب شراء</button>
+            <div class="order-form" id="form-${key}">
+              <input type="number" min="1" placeholder="الكمية" id="qty-${key}"><br>
+              <input type="text" placeholder="اسمك" id="name-${key}"><br>
+              <input type="text" placeholder="رقم الهاتف" id="phone-${key}"><br>
+              <input type="text" placeholder="العنوان" id="address-${key}"><br>
+              <button onclick="submitOrder('${key}', '${data.name}')">حفظ</button>
+              <button onclick="toggleOrderForm('${key}')">إلغاء</button>
+            </div>
+          `;
+          container.appendChild(card);
+        });
+      });
+    }
+
+    function renderAdminProducts() {
+      db.ref('products').on('value', snapshot => {
+        const container = document.getElementById('adminProducts');
+        container.innerHTML = '';
+        snapshot.forEach(child => {
+          const data = child.val();
+          const key = child.key;
+          const card = document.createElement('div');
+          card.className = 'card';
+          
+          // تقصير التفاصيل للإدمن إذا كانت طويلة
+          let shortDetails = data.details;
+          let showMoreBtn = '';
+          if (data.details.length > 100) {
+            shortDetails = data.details.substring(0, 100) + '...';
+            showMoreBtn = '<div class="show-more" onclick="toggleDetails(this)">المزيد ▼</div>';
+          }
+          
+          card.innerHTML = `
+            <img src="${data.image}" alt="صورة">
+            <h3>${data.name}</h3>
+            <div class="product-details">${data.details}</div>
+            ${showMoreBtn}
+            <p><strong>${data.price} جنيه</strong></p>
+            <button onclick="showEditForm('${key}')">تعديل</button>
+            <button onclick="deleteProduct('${key}')">حذف</button>
+            <div class="edit-form" id="edit-form-${key}">
+              <input type="text" id="edit-name-${key}" value="${data.name}" placeholder="اسم المنتج">
+              <input type="text" id="edit-price-${key}" value="${data.price}" placeholder="السعر">
+              <textarea id="edit-details-${key}" placeholder="التفاصيل" style="width:100%; height:60px; margin:5px 0; padding:5px; border-radius:8px; border:1px solid #ccc;">${data.details}</textarea>
+              <button onclick="updateProduct('${key}')">حفظ التعديلات</button>
+              <button onclick="hideEditForm('${key}')">إلغاء</button>
+            </div>
+          `;
+          container.appendChild(card);
+        });
+      });
+    }
+
+    function toggleDetails(element) {
+      const detailsDiv = element.previousElementSibling;
+      detailsDiv.classList.toggle('expanded');
+      element.textContent = detailsDiv.classList.contains('expanded') ? 'إخفاء ▲' : 'المزيد ▼';
+    }
+
+    function toggleOrderForm(id) {
+      const form = document.getElementById(`form-${id}`);
+      form.style.display = form.style.display === 'block' ? 'none' : 'block';
+    }
+
+    function submitOrder(id, productName) {
+      const qty = document.getElementById(`qty-${id}`).value;
+      const name = document.getElementById(`name-${id}`).value;
+      const phone = document.getElementById(`phone-${id}`).value;
+      const address = document.getElementById(`address-${id}`).value;
+      if (parseInt(qty) < 1) return alert('الكمية يجب أن تكون رقم موجب');
+      db.ref('orders').push({ productName, qty, name, phone, address });
+      alert('تم إرسال الطلب بنجاح');
+      toggleOrderForm(id);
+    }
+
+    function loginAdmin() {
+      const user = document.getElementById('adminUser').value;
+      const pass = document.getElementById('adminPass').value;
+      if (user === 'admin' && pass === '1234') {
+        document.querySelector('.admin-section').style.display = 'block';
+        document.querySelector('.login-form').style.display = 'none';
+        document.body.classList.add('admin-logged-in');
+        loadOrders();
+        renderAdminProducts();
+      } else {
+        alert('بيانات الدخول غير صحيحة');
+      }
+    }
+
+    function logoutAdmin() {
+      document.querySelector('.admin-section').style.display = 'none';
+      document.querySelector('.login-form').style.display = 'flex';
+      document.body.classList.remove('admin-logged-in');
+    }
+
+    function switchAdminTab(tabId) {
+      // إخفاء كل المحتويات
+      document.querySelectorAll('.admin-tab-content').forEach(content => {
+        content.classList.remove('active');
+      });
+      
+      // إلغاء تنشيط كل الألسنة
+      document.querySelectorAll('.admin-tab').forEach(tab => {
+        tab.classList.remove('active');
+      });
+      
+      // تفعيل السمة المحددة
+      document.getElementById(tabId).classList.add('active');
+      
+      // تفعيل الزر المحدد
+      document.querySelector(`.admin-tab[onclick="switchAdminTab('${tabId}')"]`).classList.add('active');
+      
+      // إذا كانت السمة هي طلبات الشراء، قم بتحميل الطلبات
+      if (tabId === 'orders-tab') {
+        loadOrders();
+      }
+    }
+
+    function addProduct() {
+      const name = document.getElementById('productName').value;
+      const price = document.getElementById('productPrice').value;
+      const details = document.getElementById('productDetails').value;
+      const fileInput = document.getElementById('productImageFile');
+      const reader = new FileReader();
+
+      if (!fileInput.files[0]) {
+        alert('يرجى اختيار صورة');
+        return;
+      }
+
+      reader.onload = function(event) {
+        const imageData = event.target.result;
+        db.ref('products').push({ name, price, details, image: imageData });
+        alert('تمت إضافة المنتج بنجاح');
+        document.getElementById('productName').value = '';
+        document.getElementById('productPrice').value = '';
+        document.getElementById('productDetails').value = '';
+        fileInput.value = '';
+        
+        // التبديل إلى تبويب المعروضات بعد الإضافة
+        switchAdminTab('products-tab');
+      };
+
+      reader.readAsDataURL(fileInput.files[0]);
+    }
+
+    function showEditForm(productId) {
+      document.getElementById(`edit-form-${productId}`).style.display = 'block';
+    }
+
+    function hideEditForm(productId) {
+      document.getElementById(`edit-form-${productId}`).style.display = 'none';
+    }
+
+    function updateProduct(productId) {
+      const name = document.getElementById(`edit-name-${productId}`).value;
+      const price = document.getElementById(`edit-price-${productId}`).value;
+      const details = document.getElementById(`edit-details-${productId}`).value;
+      
+      db.ref('products/' + productId).update({
+        name: name,
+        price: price,
+        details: details
+      });
+      
+      alert('تم تحديث المنتج بنجاح');
+      hideEditForm(productId);
+    }
+
+    function deleteProduct(productId) {
+      if (confirm('هل أنت متأكد من حذف هذا المنتج؟')) {
+        db.ref('products/' + productId).remove();
+        alert('تم حذف المنتج بنجاح');
+      }
+    }
+
+    function loadOrders() {
+      db.ref('orders').on('value', snapshot => {
+        const table = document.getElementById('ordersTable');
+        table.innerHTML = '<tr><th>المنتج</th><th>الكمية</th><th>العميل</th><th>الهاتف</th><th>العنوان</th><th>إجراء</th></tr>';
+        snapshot.forEach(child => {
+          const data = child.val();
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${data.productName}</td>
+            <td>${data.qty}</td>
+            <td>${data.name}</td>
+            <td>${data.phone}</td>
+            <td>${data.address}</td>
+            <td><button onclick="deleteOrder('${child.key}')">تم التنفيذ</button></td>
+          `;
+          table.appendChild(row);
+        });
+      });
+    }
+
+    function deleteOrder(orderId) {
+      db.ref('orders/' + orderId).remove();
+    }
+
+    renderProducts();
+  </script>
+</body>
+</html>
