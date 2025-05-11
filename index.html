@@ -9,177 +9,321 @@
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
   <style>
+    :root {
+      --primary-color: #ff4d6d;
+      --secondary-color: #c9184a;
+      --text-color: #333;
+      --light-bg: #fdfbfb;
+      --card-bg: #ffffff;
+      --border-radius: 12px;
+      --box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
     body {
       font-family: 'Cairo', sans-serif;
       direction: rtl;
       margin: 0;
       padding: 0;
-      background: linear-gradient(to bottom right, #fdfbfb, #ebedee);
-      color: #333;
+      background: var(--light-bg);
+      color: var(--text-color);
+      min-height: 100vh;
+      line-height: 1.6;
     }
+    
     header {
-      background-color: #ffffffcc;
-      padding: 15px 30px;
-      box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+      background-color: rgba(255, 255, 255, 0.95);
+      padding: 12px 16px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
       display: flex;
-      justify-content: space-between;
+      flex-direction: column;
       align-items: center;
       position: sticky;
       top: 0;
       z-index: 999;
-    }
-    .welcome {
-      font-size: 22px;
-      font-weight: bold;
-      color: #d63384;
-      animation: glow 2s ease-in-out infinite alternate;
-    }
-    @keyframes glow {
-      from { text-shadow: 0 0 5px #ffc6e0; }
-      to { text-shadow: 0 0 20px #ff99c8; }
-    }
-    .login-form {
-      display: flex;
-      gap: 5px;
-    }
-    .login-form input, .login-form button {
-      padding: 5px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      font-family: 'Cairo';
-    }
-    h1 {
-      text-align: center;
-      color: #ff4d6d;
-      margin-top: 20px;
-    }
-    #products {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      padding: 20px;
-    }
-    .card {
-      border: 1px solid #ddd;
-      padding: 15px;
-      margin: 10px;
-      background: white;
-      border-radius: 15px;
-      width: 300px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-      transition: transform 0.3s, box-shadow 0.3s;
-      position: relative;
-    }
-    .card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
-    }
-    .card img {
       width: 100%;
-      height: 200px;
-      object-fit: cover;
-      border-radius: 10px;
-    }
-    .order-form {
-      display: none;
-      margin-top: 10px;
-    }
-    .order-form input {
-      margin: 5px 0;
-      width: 100%;
-      padding: 5px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-    }
-    .admin-section {
-      display: none;
-      padding: 20px;
-    }
-    table, th, td {
-      border: 1px solid #999;
-      border-collapse: collapse;
-      padding: 8px;
-    }
-    .admin-panel input {
-      margin: 5px 0;
-      width: 100%;
-      padding: 5px;
-    }
-    button {
-      padding: 7px 15px;
-      margin-top: 5px;
-      background-color: #ff4d6d;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-family: 'Cairo';
-      transition: background-color 0.3s, transform 0.2s;
-    }
-    button:hover {
-      background-color: #c9184a;
-      transform: scale(1.05);
     }
     
-    /* التعديلات الجديدة */
+    .welcome {
+      font-size: 1.1rem;
+      font-weight: bold;
+      color: #d63384;
+      text-align: center;
+      margin-bottom: 10px;
+      animation: glow 2s ease-in-out infinite alternate;
+    }
+    
+    @keyframes glow {
+      from { text-shadow: 0 0 5px #ffc6e0; }
+      to { text-shadow: 0 0 15px #ff99c8; }
+    }
+    
+    .login-form {
+      display: flex;
+      gap: 8px;
+      width: 100%;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    
+    .login-form input {
+      flex: 1;
+      min-width: 120px;
+      padding: 8px 12px;
+      border-radius: var(--border-radius);
+      border: 1px solid #ddd;
+      font-family: 'Cairo';
+      font-size: 0.9rem;
+    }
+    
+    .login-form button {
+      padding: 8px 16px;
+      font-size: 0.9rem;
+    }
+    
+    h1, h2, h3 {
+      color: var(--primary-color);
+      margin: 1rem 0;
+    }
+    
+    h1 {
+      font-size: 1.8rem;
+      text-align: center;
+      padding: 0 16px;
+    }
+    
+    h2 {
+      font-size: 1.5rem;
+      text-align: center;
+    }
+    
+    h3 {
+      font-size: 1.2rem;
+    }
+    
+    #products, .admin-products {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+      padding: 16px;
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    .card {
+      border: 1px solid #eee;
+      padding: 16px;
+      background: var(--card-bg);
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+      transition: transform 0.3s, box-shadow 0.3s;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    }
+    
+    .card img {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+      border-radius: var(--border-radius);
+      margin-bottom: 12px;
+    }
+    
+    .order-form, .edit-form {
+      display: none;
+      margin-top: 12px;
+      background: #f9f9f9;
+      padding: 12px;
+      border-radius: var(--border-radius);
+    }
+    
+    input, textarea, button {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: var(--border-radius);
+      border: 1px solid #ddd;
+      font-family: 'Cairo';
+      font-size: 0.95rem;
+      margin: 6px 0;
+    }
+    
+    textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+    
+    button {
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background-color 0.3s, transform 0.2s;
+      margin: 8px 0;
+    }
+    
+    button:hover {
+      background-color: var(--secondary-color);
+      transform: scale(1.02);
+    }
+    
+    button:active {
+      transform: scale(0.98);
+    }
+    
+    /* التعديلات الخاصة بالتفاصيل */
     .product-details {
-      height: 80px;
+      max-height: 80px;
       overflow: hidden;
       position: relative;
+      margin: 8px 0;
     }
+    
     .product-details.expanded {
-      height: auto;
+      max-height: none;
       overflow: visible;
     }
+    
     .show-more {
-      color: #ff4d6d;
+      color: var(--primary-color);
       cursor: pointer;
       text-align: left;
-      margin-top: 5px;
+      margin: 5px 0;
       font-weight: bold;
+      font-size: 0.9rem;
     }
+    
+    /* لوحة التحكم */
+    .admin-section {
+      display: none;
+      padding: 16px;
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
     .admin-tabs {
       display: flex;
       margin-bottom: 20px;
       border-bottom: 1px solid #ddd;
+      overflow-x: auto;
+      white-space: nowrap;
+      -webkit-overflow-scrolling: touch;
     }
+    
     .admin-tab {
       padding: 10px 20px;
       cursor: pointer;
       background: #f5f5f5;
       margin-left: 5px;
-      border-radius: 5px 5px 0 0;
+      border-radius: 8px 8px 0 0;
+      font-size: 0.95rem;
     }
+    
     .admin-tab.active {
-      background: #ff4d6d;
+      background: var(--primary-color);
       color: white;
     }
+    
     .admin-tab-content {
       display: none;
+      padding: 10px 0;
     }
+    
     .admin-tab-content.active {
       display: block;
     }
-    .admin-products .card {
-      width: 250px;
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+      font-size: 0.9rem;
     }
-    .admin-products {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 15px;
-    }
-    .edit-form {
-      display: none;
-      margin-top: 10px;
-      background: #f9f9f9;
+    
+    th, td {
+      border: 1px solid #ddd;
       padding: 10px;
-      border-radius: 8px;
+      text-align: center;
     }
+    
+    th {
+      background-color: #f5f5f5;
+    }
+    
     .main-store {
       display: block;
     }
+    
     .admin-logged-in .main-store {
       display: none;
+    }
+    
+    /* تعديلات للهواتف الصغيرة */
+    @media (max-width: 480px) {
+      .welcome {
+        font-size: 1rem;
+      }
+      
+      h1 {
+        font-size: 1.5rem;
+      }
+      
+      #products, .admin-products {
+        grid-template-columns: 1fr;
+        padding: 10px;
+      }
+      
+      .card {
+        width: 100%;
+      }
+      
+      .admin-tab {
+        padding: 8px 12px;
+        font-size: 0.85rem;
+      }
+      
+      .login-form input, .login-form button {
+        padding: 8px;
+        font-size: 0.85rem;
+      }
+    }
+    
+    /* تعديلات للأجهزة اللوحية */
+    @media (min-width: 481px) and (max-width: 768px) {
+      #products, .admin-products {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    
+    /* تعديلات لأجهزة الكمبيوتر */
+    @media (min-width: 769px) {
+      header {
+        flex-direction: row;
+        justify-content: space-between;
+        padding: 15px 30px;
+      }
+      
+      .welcome {
+        margin-bottom: 0;
+        font-size: 1.2rem;
+      }
+      
+      .login-form {
+        width: auto;
+        flex-wrap: nowrap;
+      }
     }
   </style>
 </head>
@@ -217,8 +361,8 @@
       <div class="admin-panel">
         <input type="text" id="productName" placeholder="اسم المنتج">
         <input type="text" id="productPrice" placeholder="السعر">
-        <textarea id="productDetails" placeholder="التفاصيل" style="width:100%; height:100px; margin:5px 0; padding:5px; border-radius:8px; border:1px solid #ccc;"></textarea>
-        <input type="file" id="productImageFile">
+        <textarea id="productDetails" placeholder="التفاصيل"></textarea>
+        <input type="file" id="productImageFile" accept="image/*">
         <button onclick="addProduct()">إضافة منتج</button>
       </div>
     </div>
@@ -256,27 +400,24 @@
           const card = document.createElement('div');
           card.className = 'card';
           
-          // تقصير التفاصيل إذا كانت طويلة
-          let shortDetails = data.details;
           let showMoreBtn = '';
           if (data.details.length > 150) {
-            shortDetails = data.details.substring(0, 150) + '...';
             showMoreBtn = '<div class="show-more" onclick="toggleDetails(this)">المزيد ▼</div>';
           }
           
           card.innerHTML = `
-            <img src="${data.image}" alt="صورة">
+            <img src="${data.image}" alt="صورة المنتج">
             <h3>${data.name}</h3>
             <div class="product-details">${data.details}</div>
             ${showMoreBtn}
             <p><strong>${data.price} جنيه</strong></p>
             <button onclick="toggleOrderForm('${key}', '${data.name}')">طلب شراء</button>
             <div class="order-form" id="form-${key}">
-              <input type="number" min="1" placeholder="الكمية" id="qty-${key}"><br>
-              <input type="text" placeholder="اسمك" id="name-${key}"><br>
-              <input type="text" placeholder="رقم الهاتف" id="phone-${key}"><br>
-              <input type="text" placeholder="العنوان" id="address-${key}"><br>
-              <button onclick="submitOrder('${key}', '${data.name}')">حفظ</button>
+              <input type="number" min="1" value="1" placeholder="الكمية" id="qty-${key}">
+              <input type="text" placeholder="اسمك" id="name-${key}">
+              <input type="tel" placeholder="رقم الهاتف" id="phone-${key}">
+              <input type="text" placeholder="العنوان" id="address-${key}">
+              <button onclick="submitOrder('${key}', '${data.name}')">حفظ الطلب</button>
               <button onclick="toggleOrderForm('${key}')">إلغاء</button>
             </div>
           `;
@@ -295,16 +436,13 @@
           const card = document.createElement('div');
           card.className = 'card';
           
-          // تقصير التفاصيل للإدمن إذا كانت طويلة
-          let shortDetails = data.details;
           let showMoreBtn = '';
           if (data.details.length > 100) {
-            shortDetails = data.details.substring(0, 100) + '...';
             showMoreBtn = '<div class="show-more" onclick="toggleDetails(this)">المزيد ▼</div>';
           }
           
           card.innerHTML = `
-            <img src="${data.image}" alt="صورة">
+            <img src="${data.image}" alt="صورة المنتج">
             <h3>${data.name}</h3>
             <div class="product-details">${data.details}</div>
             ${showMoreBtn}
@@ -314,7 +452,7 @@
             <div class="edit-form" id="edit-form-${key}">
               <input type="text" id="edit-name-${key}" value="${data.name}" placeholder="اسم المنتج">
               <input type="text" id="edit-price-${key}" value="${data.price}" placeholder="السعر">
-              <textarea id="edit-details-${key}" placeholder="التفاصيل" style="width:100%; height:60px; margin:5px 0; padding:5px; border-radius:8px; border:1px solid #ccc;">${data.details}</textarea>
+              <textarea id="edit-details-${key}" placeholder="التفاصيل">${data.details}</textarea>
               <button onclick="updateProduct('${key}')">حفظ التعديلات</button>
               <button onclick="hideEditForm('${key}')">إلغاء</button>
             </div>
@@ -340,8 +478,21 @@
       const name = document.getElementById(`name-${id}`).value;
       const phone = document.getElementById(`phone-${id}`).value;
       const address = document.getElementById(`address-${id}`).value;
-      if (parseInt(qty) < 1) return alert('الكمية يجب أن تكون رقم موجب');
-      db.ref('orders').push({ productName, qty, name, phone, address });
+      
+      if (!qty || parseInt(qty) < 1) return alert('الكمية يجب أن تكون رقم موجب');
+      if (!name) return alert('يرجى إدخال اسمك');
+      if (!phone) return alert('يرجى إدخال رقم الهاتف');
+      if (!address) return alert('يرجى إدخال العنوان');
+      
+      db.ref('orders').push({ 
+        productName, 
+        qty, 
+        name, 
+        phone, 
+        address,
+        timestamp: firebase.database.ServerValue.TIMESTAMP
+      });
+      
       alert('تم إرسال الطلب بنجاح');
       toggleOrderForm(id);
     }
@@ -367,25 +518,21 @@
     }
 
     function switchAdminTab(tabId) {
-      // إخفاء كل المحتويات
       document.querySelectorAll('.admin-tab-content').forEach(content => {
         content.classList.remove('active');
       });
       
-      // إلغاء تنشيط كل الألسنة
       document.querySelectorAll('.admin-tab').forEach(tab => {
         tab.classList.remove('active');
       });
       
-      // تفعيل السمة المحددة
       document.getElementById(tabId).classList.add('active');
-      
-      // تفعيل الزر المحدد
       document.querySelector(`.admin-tab[onclick="switchAdminTab('${tabId}')"]`).classList.add('active');
       
-      // إذا كانت السمة هي طلبات الشراء، قم بتحميل الطلبات
       if (tabId === 'orders-tab') {
         loadOrders();
+      } else if (tabId === 'products-tab') {
+        renderAdminProducts();
       }
     }
 
@@ -394,26 +541,34 @@
       const price = document.getElementById('productPrice').value;
       const details = document.getElementById('productDetails').value;
       const fileInput = document.getElementById('productImageFile');
-      const reader = new FileReader();
-
-      if (!fileInput.files[0]) {
-        alert('يرجى اختيار صورة');
-        return;
+      
+      if (!name || !price || !details) {
+        return alert('يرجى ملء جميع الحقول');
       }
-
+      
+      if (!fileInput.files[0]) {
+        return alert('يرجى اختيار صورة للمنتج');
+      }
+      
+      const reader = new FileReader();
       reader.onload = function(event) {
         const imageData = event.target.result;
-        db.ref('products').push({ name, price, details, image: imageData });
+        db.ref('products').push({ 
+          name, 
+          price, 
+          details, 
+          image: imageData,
+          createdAt: firebase.database.ServerValue.TIMESTAMP
+        });
+        
         alert('تمت إضافة المنتج بنجاح');
         document.getElementById('productName').value = '';
         document.getElementById('productPrice').value = '';
         document.getElementById('productDetails').value = '';
         fileInput.value = '';
         
-        // التبديل إلى تبويب المعروضات بعد الإضافة
         switchAdminTab('products-tab');
       };
-
       reader.readAsDataURL(fileInput.files[0]);
     }
 
@@ -430,10 +585,15 @@
       const price = document.getElementById(`edit-price-${productId}`).value;
       const details = document.getElementById(`edit-details-${productId}`).value;
       
+      if (!name || !price || !details) {
+        return alert('يرجى ملء جميع الحقول');
+      }
+      
       db.ref('products/' + productId).update({
         name: name,
         price: price,
-        details: details
+        details: details,
+        updatedAt: firebase.database.ServerValue.TIMESTAMP
       });
       
       alert('تم تحديث المنتج بنجاح');
@@ -448,19 +608,28 @@
     }
 
     function loadOrders() {
-      db.ref('orders').on('value', snapshot => {
+      db.ref('orders').orderByChild('timestamp').on('value', snapshot => {
         const table = document.getElementById('ordersTable');
         table.innerHTML = '<tr><th>المنتج</th><th>الكمية</th><th>العميل</th><th>الهاتف</th><th>العنوان</th><th>إجراء</th></tr>';
+        
+        const orders = [];
         snapshot.forEach(child => {
-          const data = child.val();
+          orders.push({
+            key: child.key,
+            ...child.val()
+          });
+        });
+        
+        // عرض الطلبات من الأحدث إلى الأقدم
+        orders.reverse().forEach(order => {
           const row = document.createElement('tr');
           row.innerHTML = `
-            <td>${data.productName}</td>
-            <td>${data.qty}</td>
-            <td>${data.name}</td>
-            <td>${data.phone}</td>
-            <td>${data.address}</td>
-            <td><button onclick="deleteOrder('${child.key}')">تم التنفيذ</button></td>
+            <td>${order.productName}</td>
+            <td>${order.qty}</td>
+            <td>${order.name}</td>
+            <td>${order.phone}</td>
+            <td>${order.address}</td>
+            <td><button onclick="deleteOrder('${order.key}')">تم التنفيذ</button></td>
           `;
           table.appendChild(row);
         });
@@ -468,10 +637,13 @@
     }
 
     function deleteOrder(orderId) {
-      db.ref('orders/' + orderId).remove();
+      if (confirm('هل تم تنفيذ هذا الطلب؟')) {
+        db.ref('orders/' + orderId).remove();
+      }
     }
 
-    renderProducts();
+    // تحميل المنتجات عند بدء التشغيل
+    document.addEventListener('DOMContentLoaded', renderProducts);
   </script>
 </body>
 </html>
