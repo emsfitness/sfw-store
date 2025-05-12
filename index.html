@@ -606,7 +606,7 @@
             <input type="tel" placeholder="رقم الهاتف" id="phone-${product.id}">
             <input type="text" placeholder="العنوان" id="address-${product.id}">
             <div class="order-buttons">
-              <button onclick="submitOrder('${product.id}', '${product.name}')">حفظ الطلب</button>
+              <button onclick="submitOrder('${product.id}', '${product.name.replace(/'/g, "\\'")}')">حفظ الطلب</button>
               <button class="cancel" onclick="toggleOrderSection('${product.id}')">إلغاء</button>
             </div>
           </div>
