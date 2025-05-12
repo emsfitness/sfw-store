@@ -347,6 +347,60 @@
       font-size: 0.9rem;
     }
     
+    /* شريط البحث */
+    .search-container {
+      display: flex;
+      margin: 16px auto;
+      max-width: 600px;
+      padding: 0 16px;
+    }
+    
+    .search-container input {
+      border-radius: var(--border-radius) 0 0 var(--border-radius);
+      margin: 0;
+    }
+    
+    .search-container button {
+      width: auto;
+      border-radius: 0 var(--border-radius) var(--border-radius) 0;
+      padding: 0 16px;
+    }
+    
+    /* قسم طلب الشراء الجديد */
+    .order-section {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease-out;
+      background: #f9f9f9;
+      border-radius: var(--border-radius);
+      margin-top: 10px;
+    }
+    
+    .order-section.expanded {
+      max-height: 500px;
+      padding: 12px;
+      margin-top: 10px;
+    }
+    
+    .order-section input {
+      margin-bottom: 8px;
+    }
+    
+    .order-buttons {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    
+    .order-buttons button {
+      flex: 1;
+      padding: 8px;
+    }
+    
+    .order-buttons button.cancel {
+      background: #6c757d;
+    }
+    
     /* تعديلات للهواتف الصغيرة */
     @media (max-width: 768px) {
       header {
@@ -391,6 +445,20 @@
       .top-buttons button {
         width: auto;
         padding: 8px 12px;
+      }
+      
+      .search-container {
+        flex-direction: column;
+      }
+      
+      .search-container input {
+        border-radius: var(--border-radius);
+        margin-bottom: 5px;
+      }
+      
+      .search-container button {
+        border-radius: var(--border-radius);
+        width: 100%;
       }
     }
     
@@ -442,6 +510,13 @@
     </div>
     
     <h1>معروضات المتجر</h1>
+    
+    <!-- شريط البحث -->
+    <div class="search-container">
+      <input type="text" id="searchInput" placeholder="ابحث عن منتج...">
+      <button onclick="searchProducts()"><i class="fas fa-search"></i> بحث</button>
+    </div>
+    
     <div id="products"></div>
   </div>
 
@@ -486,8 +561,6 @@
     </div>
   </div>
 
-  <div class="order-form-overlay" id="orderFormOverlay"></div>
-
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyC0BkNX-62lynXzcGxhLu3QiJLvU4vOQOM",
@@ -503,31 +576,42 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    function renderProducts() {
-      db.ref('products').on('value', snapshot => {
-        const container = document.getElementById('products');
-        container.innerHTML = '';
-        snapshot.forEach(child => {
-          const data = child.val();
-          const key = child.key;
-          const card = document.createElement('div');
-          card.className = 'card';
-          
-          let showMoreBtn = '';
-          if (data.details.length > 150) {
-            showMoreBtn = '<div class="show-more" onclick="toggleDetails(this)">المزيد ▼</div>';
-          }
-          
-          card.innerHTML = `
-            <img src="${data.image}" alt="صورة المنتج">
-            <h3>${data.name}</h3>
-            <div class="product-details">${data.details}</div>
-            ${showMoreBtn}
-            <p><strong>${data.price} جنيه</strong></p>
-            <button onclick="showOrderForm('${key}', '${data.name}')">طلب شراء</button>
-          `;
-          container.appendChild(card);
-        });
+    // متغير لتخزين جميع المنتجات للبحث
+    let allProducts = [];
+
+    function renderProducts(products = null) {
+      const productsToRender = products || allProducts;
+      const container = document.getElementById('products');
+      container.innerHTML = '';
+      
+      productsToRender.forEach(product => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        
+        let showMoreBtn = '';
+        if (product.details.length > 150) {
+          showMoreBtn = '<div class="show-more" onclick="toggleDetails(this)">المزيد ▼</div>';
+        }
+        
+        card.innerHTML = `
+          <img src="${product.image}" alt="صورة المنتج">
+          <h3>${product.name}</h3>
+          <div class="product-details">${product.details}</div>
+          ${showMoreBtn}
+          <p><strong>${product.price} جنيه</strong></p>
+          <button onclick="toggleOrderSection('${product.id}')">طلب شراء</button>
+          <div class="order-section" id="order-section-${product.id}">
+            <input type="number" min="1" value="1" placeholder="الكمية" id="qty-${product.id}">
+            <input type="text" placeholder="اسمك" id="name-${product.id}">
+            <input type="tel" placeholder="رقم الهاتف" id="phone-${product.id}">
+            <input type="text" placeholder="العنوان" id="address-${product.id}">
+            <div class="order-buttons">
+              <button onclick="submitOrder('${product.id}', '${product.name}')">حفظ الطلب</button>
+              <button class="cancel" onclick="toggleOrderSection('${product.id}')">إلغاء</button>
+            </div>
+          </div>
+        `;
+        container.appendChild(card);
       });
     }
 
@@ -573,35 +657,9 @@
       element.textContent = detailsDiv.classList.contains('expanded') ? 'إخفاء ▲' : 'المزيد ▼';
     }
 
-    function showOrderForm(id, productName) {
-      const formHTML = `
-        <h3>طلب شراء ${productName}</h3>
-        <input type="number" min="1" value="1" placeholder="الكمية" id="qty-${id}">
-        <input type="text" placeholder="اسمك" id="name-${id}">
-        <input type="tel" placeholder="رقم الهاتف" id="phone-${id}">
-        <input type="text" placeholder="العنوان" id="address-${id}">
-        <div style="display: flex; gap: 10px;">
-          <button style="flex: 1;" onclick="submitOrder('${id}', '${productName}')">حفظ الطلب</button>
-          <button style="flex: 1; background: #6c757d;" onclick="hideOrderForm()">إلغاء</button>
-        </div>
-      `;
-      
-      const formContainer = document.createElement('div');
-      formContainer.className = 'order-form';
-      formContainer.id = 'order-form';
-      formContainer.innerHTML = formHTML;
-      
-      document.body.appendChild(formContainer);
-      document.getElementById('orderFormOverlay').classList.add('active');
-      formContainer.style.display = 'block';
-    }
-
-    function hideOrderForm() {
-      const form = document.getElementById('order-form');
-      if (form) {
-        form.remove();
-      }
-      document.getElementById('orderFormOverlay').classList.remove('active');
+    function toggleOrderSection(productId) {
+      const orderSection = document.getElementById(`order-section-${productId}`);
+      orderSection.classList.toggle('expanded');
     }
 
     function submitOrder(id, productName) {
@@ -625,7 +683,12 @@
       });
       
       alert('تم إرسال الطلب بنجاح');
-      hideOrderForm();
+      toggleOrderSection(id);
+      // مسح حقول النموذج
+      document.getElementById(`qty-${id}`).value = '1';
+      document.getElementById(`name-${id}`).value = '';
+      document.getElementById(`phone-${id}`).value = '';
+      document.getElementById(`address-${id}`).value = '';
     }
 
     function toggleLoginForm() {
@@ -783,24 +846,28 @@
       document.getElementById('aboutSection').style.display = 'block';
       document.getElementById('products').style.display = 'none';
       document.querySelector('.main-store h1').style.display = 'none';
+      document.querySelector('.search-container').style.display = 'none';
     }
     
     function hideAboutSection() {
       document.getElementById('aboutSection').style.display = 'none';
       document.getElementById('products').style.display = 'grid';
       document.querySelector('.main-store h1').style.display = 'block';
+      document.querySelector('.search-container').style.display = 'flex';
     }
     
     function showContactSection() {
       document.getElementById('contactSection').style.display = 'block';
       document.getElementById('products').style.display = 'none';
       document.querySelector('.main-store h1').style.display = 'none';
+      document.querySelector('.search-container').style.display = 'none';
     }
     
     function hideContactSection() {
       document.getElementById('contactSection').style.display = 'none';
       document.getElementById('products').style.display = 'grid';
       document.querySelector('.main-store h1').style.display = 'block';
+      document.querySelector('.search-container').style.display = 'flex';
     }
     
     function sendContactMessage() {
@@ -862,9 +929,44 @@
         db.ref('messages/' + messageId).remove();
       }
     }
-
+    
+    // وظيفة البحث عن المنتجات
+    function searchProducts() {
+      const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+      if (!searchTerm) {
+        renderProducts(allProducts);
+        return;
+      }
+      
+      const filteredProducts = allProducts.filter(product => 
+        product.name.toLowerCase().includes(searchTerm) || 
+        product.details.toLowerCase().includes(searchTerm) ||
+        product.price.toLowerCase().includes(searchTerm)
+      );
+      
+      renderProducts(filteredProducts);
+    }
+    
     // تحميل المنتجات عند بدء التشغيل
-    document.addEventListener('DOMContentLoaded', renderProducts);
+    document.addEventListener('DOMContentLoaded', () => {
+      db.ref('products').on('value', snapshot => {
+        allProducts = [];
+        snapshot.forEach(child => {
+          allProducts.push({
+            id: child.key,
+            ...child.val()
+          });
+        });
+        renderProducts();
+      });
+      
+      // تفعيل البحث عند الضغط على زر Enter
+      document.getElementById('searchInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+          searchProducts();
+        }
+      });
+    });
   </script>
 </body>
 </html>
