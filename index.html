@@ -140,7 +140,7 @@
       margin-bottom: 12px;
     }
     
-    .order-form, .edit-form {
+    .order-form, .edit-form, .about-section, .contact-section {
       display: none;
       margin-top: 12px;
       background: #f9f9f9;
@@ -270,6 +270,18 @@
       display: none;
     }
     
+    .top-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin: 15px 0;
+    }
+    
+    .top-buttons button {
+      width: auto;
+      padding: 10px 20px;
+    }
+    
     /* تعديلات للهواتف الصغيرة */
     @media (max-width: 480px) {
       .welcome {
@@ -297,6 +309,15 @@
       .login-form input, .login-form button {
         padding: 8px;
         font-size: 0.85rem;
+      }
+      
+      .top-buttons {
+        flex-direction: column;
+        align-items: center;
+      }
+      
+      .top-buttons button {
+        width: 80%;
       }
     }
     
@@ -338,6 +359,27 @@
   </header>
 
   <div class="main-store">
+    <div class="top-buttons">
+      <button onclick="showAboutSection()">من نحن</button>
+      <button onclick="showContactSection()">تواصل معنا</button>
+    </div>
+    
+    <div class="about-section" id="aboutSection">
+      <h2>من نحن</h2>
+      <p>نحن شركة متخصصة في تقديم حلول رقمية متكاملة، تشمل تصميم وتطوير المتاجر الإلكترونية، وتطبيقات إدارة الأنشطة بمختلف أنواعها. كما نُبدع في تصميم الهويات البصرية وابتكار محتوى احترافي للسوشيال ميديا يعزز حضور علامتك التجارية ويُبرز تميزك في السوق.</p>
+      <button onclick="hideAboutSection()">العودة</button>
+    </div>
+    
+    <div class="contact-section" id="contactSection">
+      <h2>تواصل معنا</h2>
+      <p>البريد الإلكتروني: dodsmart7@gmail.com</p>
+      <input type="text" id="contactName" placeholder="اسمك">
+      <input type="email" id="contactEmail" placeholder="بريدك الإلكتروني">
+      <textarea id="contactMessage" placeholder="رسالتك"></textarea>
+      <button onclick="sendContactMessage()">إرسال الرسالة</button>
+      <button onclick="hideContactSection()">إلغاء</button>
+    </div>
+    
     <h1>معروضات المتجر</h1>
     <div id="products"></div>
   </div>
@@ -349,6 +391,7 @@
       <div class="admin-tab active" onclick="switchAdminTab('products-tab')">معروضات المتجر</div>
       <div class="admin-tab" onclick="switchAdminTab('add-tab')">إضافة منتج</div>
       <div class="admin-tab" onclick="switchAdminTab('orders-tab')">طلبات الشراء</div>
+      <div class="admin-tab" onclick="switchAdminTab('messages-tab')">رسائل العملاء</div>
     </div>
     
     <div id="products-tab" class="admin-tab-content active">
@@ -371,6 +414,13 @@
       <h2>طلبات الشراء</h2>
       <table id="ordersTable">
         <tr><th>المنتج</th><th>الكمية</th><th>العميل</th><th>الهاتف</th><th>العنوان</th><th>إجراء</th></tr>
+      </table>
+    </div>
+    
+    <div id="messages-tab" class="admin-tab-content">
+      <h2>رسائل العملاء</h2>
+      <table id="messagesTable">
+        <tr><th>الاسم</th><th>البريد الإلكتروني</th><th>الرسالة</th><th>التاريخ</th><th>إجراء</th></tr>
       </table>
     </div>
   </div>
@@ -411,14 +461,17 @@
             <div class="product-details">${data.details}</div>
             ${showMoreBtn}
             <p><strong>${data.price} جنيه</strong></p>
-            <button onclick="toggleOrderForm('${key}', '${data.name}')">طلب شراء</button>
-            <div class="order-form" id="form-${key}">
+            <button onclick="showOrderForm('${key}')">طلب شراء</button>
+            <div class="order-form" id="order-form-${key}">
+              <h3>طلب شراء ${data.name}</h3>
               <input type="number" min="1" value="1" placeholder="الكمية" id="qty-${key}">
               <input type="text" placeholder="اسمك" id="name-${key}">
               <input type="tel" placeholder="رقم الهاتف" id="phone-${key}">
               <input type="text" placeholder="العنوان" id="address-${key}">
-              <button onclick="submitOrder('${key}', '${data.name}')">حفظ الطلب</button>
-              <button onclick="toggleOrderForm('${key}')">إلغاء</button>
+              <div style="display: flex; gap: 10px;">
+                <button style="flex: 1;" onclick="submitOrder('${key}', '${data.name}')">حفظ الطلب</button>
+                <button style="flex: 1; background: #6c757d;" onclick="hideOrderForm('${key}')">إلغاء</button>
+              </div>
             </div>
           `;
           container.appendChild(card);
@@ -468,9 +521,12 @@
       element.textContent = detailsDiv.classList.contains('expanded') ? 'إخفاء ▲' : 'المزيد ▼';
     }
 
-    function toggleOrderForm(id) {
-      const form = document.getElementById(`form-${id}`);
-      form.style.display = form.style.display === 'block' ? 'none' : 'block';
+    function showOrderForm(id) {
+      document.getElementById(`order-form-${id}`).style.display = 'block';
+    }
+
+    function hideOrderForm(id) {
+      document.getElementById(`order-form-${id}`).style.display = 'none';
     }
 
     function submitOrder(id, productName) {
@@ -494,7 +550,13 @@
       });
       
       alert('تم إرسال الطلب بنجاح');
-      toggleOrderForm(id);
+      hideOrderForm(id);
+      
+      // مسح حقول الطلب
+      document.getElementById(`qty-${id}`).value = '1';
+      document.getElementById(`name-${id}`).value = '';
+      document.getElementById(`phone-${id}`).value = '';
+      document.getElementById(`address-${id}`).value = '';
     }
 
     function loginAdmin() {
@@ -505,6 +567,7 @@
         document.querySelector('.login-form').style.display = 'none';
         document.body.classList.add('admin-logged-in');
         loadOrders();
+        loadMessages();
         renderAdminProducts();
       } else {
         alert('بيانات الدخول غير صحيحة');
@@ -533,6 +596,8 @@
         loadOrders();
       } else if (tabId === 'products-tab') {
         renderAdminProducts();
+      } else if (tabId === 'messages-tab') {
+        loadMessages();
       }
     }
 
@@ -639,6 +704,90 @@
     function deleteOrder(orderId) {
       if (confirm('هل تم تنفيذ هذا الطلب؟')) {
         db.ref('orders/' + orderId).remove();
+      }
+    }
+    
+    function showAboutSection() {
+      document.getElementById('aboutSection').style.display = 'block';
+      document.getElementById('products').style.display = 'none';
+      document.querySelector('.main-store h1').style.display = 'none';
+    }
+    
+    function hideAboutSection() {
+      document.getElementById('aboutSection').style.display = 'none';
+      document.getElementById('products').style.display = 'grid';
+      document.querySelector('.main-store h1').style.display = 'block';
+    }
+    
+    function showContactSection() {
+      document.getElementById('contactSection').style.display = 'block';
+      document.getElementById('products').style.display = 'none';
+      document.querySelector('.main-store h1').style.display = 'none';
+    }
+    
+    function hideContactSection() {
+      document.getElementById('contactSection').style.display = 'none';
+      document.getElementById('products').style.display = 'grid';
+      document.querySelector('.main-store h1').style.display = 'block';
+    }
+    
+    function sendContactMessage() {
+      const name = document.getElementById('contactName').value;
+      const email = document.getElementById('contactEmail').value;
+      const message = document.getElementById('contactMessage').value;
+      
+      if (!name || !email || !message) {
+        return alert('يرجى ملء جميع الحقول');
+      }
+      
+      db.ref('messages').push({
+        name: name,
+        email: email,
+        message: message,
+        timestamp: firebase.database.ServerValue.TIMESTAMP
+      });
+      
+      alert('تم إرسال رسالتك بنجاح، شكراً لتواصلك معنا!');
+      document.getElementById('contactName').value = '';
+      document.getElementById('contactEmail').value = '';
+      document.getElementById('contactMessage').value = '';
+      hideContactSection();
+    }
+    
+    function loadMessages() {
+      db.ref('messages').orderByChild('timestamp').on('value', snapshot => {
+        const table = document.getElementById('messagesTable');
+        table.innerHTML = '<tr><th>الاسم</th><th>البريد الإلكتروني</th><th>الرسالة</th><th>التاريخ</th><th>إجراء</th></tr>';
+        
+        const messages = [];
+        snapshot.forEach(child => {
+          messages.push({
+            key: child.key,
+            ...child.val()
+          });
+        });
+        
+        // عرض الرسائل من الأحدث إلى الأقدم
+        messages.reverse().forEach(msg => {
+          const date = new Date(msg.timestamp);
+          const dateStr = date.toLocaleDateString('ar-EG') + ' ' + date.toLocaleTimeString('ar-EG');
+          
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${msg.name}</td>
+            <td>${msg.email}</td>
+            <td>${msg.message}</td>
+            <td>${dateStr}</td>
+            <td><button onclick="deleteMessage('${msg.key}')">حذف</button></td>
+          `;
+          table.appendChild(row);
+        });
+      });
+    }
+    
+    function deleteMessage(messageId) {
+      if (confirm('هل تريد حذف هذه الرسالة؟')) {
+        db.ref('messages/' + messageId).remove();
       }
     }
 
