@@ -606,7 +606,7 @@
             <input type="tel" placeholder="رقم الهاتف" id="phone-${product.id}">
             <input type="text" placeholder="العنوان" id="address-${product.id}">
             <div class="order-buttons">
-              <button onclick="submitOrder('${product.id}', '${product.name.replace(/'/g, "\\'")}')">حفظ الطلب</button>
+              <button onclick="submitOrder('${product.id}')">حفظ الطلب</button>
               <button class="cancel" onclick="toggleOrderSection('${product.id}')">إلغاء</button>
             </div>
           </div>
@@ -662,33 +662,42 @@
       orderSection.classList.toggle('expanded');
     }
 
-    function submitOrder(id, productName) {
-      const qty = document.getElementById(`qty-${id}`).value;
-      const name = document.getElementById(`name-${id}`).value;
-      const phone = document.getElementById(`phone-${id}`).value;
-      const address = document.getElementById(`address-${id}`).value;
+    function submitOrder(productId) {
+      const qty = document.getElementById(`qty-${productId}`).value;
+      const name = document.getElementById(`name-${productId}`).value;
+      const phone = document.getElementById(`phone-${productId}`).value;
+      const address = document.getElementById(`address-${productId}`).value;
       
       if (!qty || parseInt(qty) < 1) return alert('الكمية يجب أن تكون رقم موجب');
       if (!name) return alert('يرجى إدخال اسمك');
       if (!phone) return alert('يرجى إدخال رقم الهاتف');
       if (!address) return alert('يرجى إدخال العنوان');
       
+      // الحصول على اسم المنتج من البيانات المحلية
+      const product = allProducts.find(p => p.id === productId);
+      if (!product) return alert('المنتج غير موجود');
+      
       db.ref('orders').push({ 
-        productName, 
+        productName: product.name, 
         qty, 
         name, 
         phone, 
         address,
         timestamp: firebase.database.ServerValue.TIMESTAMP
+      })
+      .then(() => {
+        alert('تم إرسال الطلب بنجاح');
+        toggleOrderSection(productId);
+        // مسح حقول النموذج
+        document.getElementById(`qty-${productId}`).value = '1';
+        document.getElementById(`name-${productId}`).value = '';
+        document.getElementById(`phone-${productId}`).value = '';
+        document.getElementById(`address-${productId}`).value = '';
+      })
+      .catch(error => {
+        console.error('Error saving order:', error);
+        alert('حدث خطأ أثناء حفظ الطلب، يرجى المحاولة مرة أخرى');
       });
-      
-      alert('تم إرسال الطلب بنجاح');
-      toggleOrderSection(id);
-      // مسح حقول النموذج
-      document.getElementById(`qty-${id}`).value = '1';
-      document.getElementById(`name-${id}`).value = '';
-      document.getElementById(`phone-${id}`).value = '';
-      document.getElementById(`address-${id}`).value = '';
     }
 
     function toggleLoginForm() {
