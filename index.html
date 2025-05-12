@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SFW متجر إلكتروني</title>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
@@ -41,12 +42,28 @@
       padding: 12px 16px;
       box-shadow: 0 2px 10px rgba(0,0,0,0.1);
       display: flex;
-      flex-direction: column;
+      justify-content: space-between;
       align-items: center;
+      flex-wrap: wrap;
       position: sticky;
       top: 0;
       z-index: 999;
       width: 100%;
+      gap: 10px;
+    }
+    
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
+      min-width: 200px;
+    }
+    
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
     
     .welcome {
@@ -54,8 +71,8 @@
       font-weight: bold;
       color: #d63384;
       text-align: center;
-      margin-bottom: 10px;
       animation: glow 2s ease-in-out infinite alternate;
+      flex: 1;
     }
     
     @keyframes glow {
@@ -64,26 +81,49 @@
     }
     
     .login-form {
-      display: flex;
-      gap: 8px;
-      width: 100%;
-      flex-wrap: wrap;
-      justify-content: center;
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 20px;
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+      z-index: 1000;
+      width: 90%;
+      max-width: 400px;
+    }
+    
+    .login-form.active {
+      display: block;
     }
     
     .login-form input {
-      flex: 1;
-      min-width: 120px;
-      padding: 8px 12px;
+      width: 100%;
+      padding: 10px 12px;
       border-radius: var(--border-radius);
       border: 1px solid #ddd;
       font-family: 'Cairo';
-      font-size: 0.9rem;
+      font-size: 0.95rem;
+      margin: 8px 0;
     }
     
     .login-form button {
-      padding: 8px 16px;
-      font-size: 0.9rem;
+      width: 100%;
+      padding: 10px;
+      font-size: 0.95rem;
+    }
+    
+    .login-icon {
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: var(--primary-color);
+      transition: transform 0.3s;
+    }
+    
+    .login-icon:hover {
+      transform: scale(1.1);
     }
     
     h1, h2, h3 {
@@ -146,6 +186,32 @@
       background: #f9f9f9;
       padding: 12px;
       border-radius: var(--border-radius);
+    }
+    
+    .order-form {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 90%;
+      max-width: 500px;
+      z-index: 1000;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    }
+    
+    .order-form-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 999;
+    }
+    
+    .order-form-overlay.active {
+      display: block;
     }
     
     input, textarea, button {
@@ -272,20 +338,30 @@
     
     .top-buttons {
       display: flex;
-      justify-content: center;
       gap: 10px;
-      margin: 15px 0;
     }
     
     .top-buttons button {
       width: auto;
-      padding: 10px 20px;
+      padding: 8px 16px;
+      font-size: 0.9rem;
     }
     
     /* تعديلات للهواتف الصغيرة */
-    @media (max-width: 480px) {
+    @media (max-width: 768px) {
+      header {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      
+      .header-left, .header-right {
+        flex-direction: column;
+        gap: 8px;
+      }
+      
       .welcome {
         font-size: 1rem;
+        margin: 5px 0;
       }
       
       h1 {
@@ -306,18 +382,15 @@
         font-size: 0.85rem;
       }
       
-      .login-form input, .login-form button {
-        padding: 8px;
-        font-size: 0.85rem;
-      }
-      
       .top-buttons {
-        flex-direction: column;
-        align-items: center;
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
       }
       
       .top-buttons button {
-        width: 80%;
+        width: auto;
+        padding: 8px 12px;
       }
     }
     
@@ -327,43 +400,31 @@
         grid-template-columns: repeat(2, 1fr);
       }
     }
-    
-    /* تعديلات لأجهزة الكمبيوتر */
-    @media (min-width: 769px) {
-      header {
-        flex-direction: row;
-        justify-content: space-between;
-        padding: 15px 30px;
-      }
-      
-      .welcome {
-        margin-bottom: 0;
-        font-size: 1.2rem;
-      }
-      
-      .login-form {
-        width: auto;
-        flex-wrap: nowrap;
-      }
-    }
   </style>
 </head>
 <body>
   <header>
-    <div class="welcome">🌟 مرحباً بك في SFW! تسوّق بذكاء واكتشف كل جديد! 🌟</div>
-    <div class="login-form">
+    <div class="header-left">
+      <div class="top-buttons">
+        <button onclick="showAboutSection()">من نحن</button>
+        <button onclick="showContactSection()">تواصل معنا</button>
+      </div>
+      <div class="welcome">🌟 مرحباً بك في SFW! تسوّق بذكاء واكتشف كل جديد! 🌟</div>
+    </div>
+    <div class="header-right">
+      <i class="fas fa-sign-in-alt login-icon" onclick="toggleLoginForm()"></i>
+    </div>
+    
+    <div class="login-form" id="loginForm">
+      <h2>تسجيل دخول الأدمن</h2>
       <input type="text" id="adminUser" placeholder="اسم المستخدم">
       <input type="password" id="adminPass" placeholder="كلمة المرور">
       <button onclick="loginAdmin()">دخول</button>
+      <button onclick="toggleLoginForm()" style="background: #6c757d;">إلغاء</button>
     </div>
   </header>
 
   <div class="main-store">
-    <div class="top-buttons">
-      <button onclick="showAboutSection()">من نحن</button>
-      <button onclick="showContactSection()">تواصل معنا</button>
-    </div>
-    
     <div class="about-section" id="aboutSection">
       <h2>من نحن</h2>
       <p>نحن شركة متخصصة في تقديم حلول رقمية متكاملة، تشمل تصميم وتطوير المتاجر الإلكترونية، وتطبيقات إدارة الأنشطة بمختلف أنواعها. كما نُبدع في تصميم الهويات البصرية وابتكار محتوى احترافي للسوشيال ميديا يعزز حضور علامتك التجارية ويُبرز تميزك في السوق.</p>
@@ -425,6 +486,8 @@
     </div>
   </div>
 
+  <div class="order-form-overlay" id="orderFormOverlay"></div>
+
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyC0BkNX-62lynXzcGxhLu3QiJLvU4vOQOM",
@@ -461,18 +524,7 @@
             <div class="product-details">${data.details}</div>
             ${showMoreBtn}
             <p><strong>${data.price} جنيه</strong></p>
-            <button onclick="showOrderForm('${key}')">طلب شراء</button>
-            <div class="order-form" id="order-form-${key}">
-              <h3>طلب شراء ${data.name}</h3>
-              <input type="number" min="1" value="1" placeholder="الكمية" id="qty-${key}">
-              <input type="text" placeholder="اسمك" id="name-${key}">
-              <input type="tel" placeholder="رقم الهاتف" id="phone-${key}">
-              <input type="text" placeholder="العنوان" id="address-${key}">
-              <div style="display: flex; gap: 10px;">
-                <button style="flex: 1;" onclick="submitOrder('${key}', '${data.name}')">حفظ الطلب</button>
-                <button style="flex: 1; background: #6c757d;" onclick="hideOrderForm('${key}')">إلغاء</button>
-              </div>
-            </div>
+            <button onclick="showOrderForm('${key}', '${data.name}')">طلب شراء</button>
           `;
           container.appendChild(card);
         });
@@ -521,12 +573,35 @@
       element.textContent = detailsDiv.classList.contains('expanded') ? 'إخفاء ▲' : 'المزيد ▼';
     }
 
-    function showOrderForm(id) {
-      document.getElementById(`order-form-${id}`).style.display = 'block';
+    function showOrderForm(id, productName) {
+      const formHTML = `
+        <h3>طلب شراء ${productName}</h3>
+        <input type="number" min="1" value="1" placeholder="الكمية" id="qty-${id}">
+        <input type="text" placeholder="اسمك" id="name-${id}">
+        <input type="tel" placeholder="رقم الهاتف" id="phone-${id}">
+        <input type="text" placeholder="العنوان" id="address-${id}">
+        <div style="display: flex; gap: 10px;">
+          <button style="flex: 1;" onclick="submitOrder('${id}', '${productName}')">حفظ الطلب</button>
+          <button style="flex: 1; background: #6c757d;" onclick="hideOrderForm()">إلغاء</button>
+        </div>
+      `;
+      
+      const formContainer = document.createElement('div');
+      formContainer.className = 'order-form';
+      formContainer.id = 'order-form';
+      formContainer.innerHTML = formHTML;
+      
+      document.body.appendChild(formContainer);
+      document.getElementById('orderFormOverlay').classList.add('active');
+      formContainer.style.display = 'block';
     }
 
-    function hideOrderForm(id) {
-      document.getElementById(`order-form-${id}`).style.display = 'none';
+    function hideOrderForm() {
+      const form = document.getElementById('order-form');
+      if (form) {
+        form.remove();
+      }
+      document.getElementById('orderFormOverlay').classList.remove('active');
     }
 
     function submitOrder(id, productName) {
@@ -550,13 +625,11 @@
       });
       
       alert('تم إرسال الطلب بنجاح');
-      hideOrderForm(id);
-      
-      // مسح حقول الطلب
-      document.getElementById(`qty-${id}`).value = '1';
-      document.getElementById(`name-${id}`).value = '';
-      document.getElementById(`phone-${id}`).value = '';
-      document.getElementById(`address-${id}`).value = '';
+      hideOrderForm();
+    }
+
+    function toggleLoginForm() {
+      document.getElementById('loginForm').classList.toggle('active');
     }
 
     function loginAdmin() {
@@ -564,8 +637,8 @@
       const pass = document.getElementById('adminPass').value;
       if (user === 'admin' && pass === '1234') {
         document.querySelector('.admin-section').style.display = 'block';
-        document.querySelector('.login-form').style.display = 'none';
         document.body.classList.add('admin-logged-in');
+        toggleLoginForm();
         loadOrders();
         loadMessages();
         renderAdminProducts();
@@ -576,7 +649,6 @@
 
     function logoutAdmin() {
       document.querySelector('.admin-section').style.display = 'none';
-      document.querySelector('.login-form').style.display = 'flex';
       document.body.classList.remove('admin-logged-in');
     }
 
