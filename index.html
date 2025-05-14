@@ -1,16 +1,39 @@
 <!DOCTYPE html>
+
 <html lang="ar">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SFW متجر إلكتروني</title>
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
-  <style>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SFW متجر إلكتروني</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet"/>
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+<style>
     :root {
+      --primary-color: #008080;  /* Teal */
+      --secondary-color: #ffd700;  /* Gold */
+      --accent-color: #f39c12;  /* Bright Amber */
+      --text-color: #1e1e2f;
+      --light-bg: #fdfcfb;
+      --card-bg: #ffffff;
+      --gradient-bg: linear-gradient(135deg, #008080 0%, #ffd700 100%);
+      --border-radius: 16px;
+      --box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+      --transition: all 0.3s ease-in-out;
+
+      --primary-color: #6a11cb;
+      --secondary-color: #2575fc;
+      --accent-color: #ff6f61;
+      --text-color: #1e1e2f;
+      --light-bg: #f4f7f8;
+      --card-bg: #ffffff;
+      --gradient-bg: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+      --border-radius: 16px;
+      --box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+      --transition: all 0.3s ease-in-out;
+
       --primary-color: #ff4d6d;
       --secondary-color: #c9184a;
       --text-color: #333;
@@ -110,6 +133,8 @@
     }
     
     .login-form button {
+      transition: var(--transition);
+
       width: 100%;
       padding: 10px;
       font-size: 0.95rem;
@@ -157,6 +182,8 @@
     }
     
     .card {
+      animation: fadeInUp 0.6s ease-in-out;
+
       border: 1px solid #eee;
       padding: 16px;
       background: var(--card-bg);
@@ -215,6 +242,8 @@
     }
     
     input, textarea, button {
+      transition: var(--transition);
+
       width: 100%;
       padding: 10px 12px;
       border-radius: var(--border-radius);
@@ -230,6 +259,8 @@
     }
     
     button {
+      transition: var(--transition);
+
       background-color: var(--primary-color);
       color: white;
       border: none;
@@ -240,6 +271,9 @@
     }
     
     button:hover {
+      transform: scale(1.05);
+      background: var(--secondary-color); color: var(--text-color);
+
       background-color: var(--secondary-color);
       transform: scale(1.02);
     }
@@ -342,6 +376,8 @@
     }
     
     .top-buttons button {
+      transition: var(--transition);
+
       width: auto;
       padding: 8px 16px;
       font-size: 0.9rem;
@@ -361,6 +397,8 @@
     }
     
     .search-container button {
+      transition: var(--transition);
+
       width: auto;
       border-radius: 0 var(--border-radius) var(--border-radius) 0;
       padding: 0 16px;
@@ -393,6 +431,8 @@
     }
     
     .order-buttons button {
+      transition: var(--transition);
+
       flex: 1;
       padding: 8px;
     }
@@ -428,6 +468,8 @@
       }
       
       .card {
+      animation: fadeInUp 0.6s ease-in-out;
+
         width: 100%;
       }
       
@@ -443,6 +485,8 @@
       }
       
       .top-buttons button {
+      transition: var(--transition);
+
         width: auto;
         padding: 8px 12px;
       }
@@ -457,6 +501,8 @@
       }
       
       .search-container button {
+      transition: var(--transition);
+
         border-radius: var(--border-radius);
         width: 100%;
       }
@@ -468,100 +514,113 @@
         grid-template-columns: repeat(2, 1fr);
       }
     }
-  </style>
+  
+@keyframes fadeInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.search-container {
+  display: flex;
+  flex-direction: row-reverse;
+  align-items: center;
+  justify-content: space-between;
+}
+.search-icon-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--primary-color);
+  font-size: 1.2rem;
+  padding: 0 12px;
+}
+.search-icon-button:hover {
+  color: var(--secondary-color);
+}
+    </style>
 </head>
 <body>
-  <header>
-    <div class="header-left">
-      <div class="top-buttons">
-        <button onclick="showAboutSection()">من نحن</button>
-        <button onclick="showContactSection()">تواصل معنا</button>
-      </div>
-      <div class="welcome">🌟 مرحباً بك في SFW! تسوّق بذكاء واكتشف كل جديد! 🌟</div>
-    </div>
-    <div class="header-right">
-      <i class="fas fa-sign-in-alt login-icon" onclick="toggleLoginForm()"></i>
-    </div>
-    
-    <div class="login-form" id="loginForm">
-      <h2>تسجيل دخول الأدمن</h2>
-      <input type="text" id="adminUser" placeholder="اسم المستخدم">
-      <input type="password" id="adminPass" placeholder="كلمة المرور">
-      <button onclick="loginAdmin()">دخول</button>
-      <button onclick="toggleLoginForm()" style="background: #6c757d;">إلغاء</button>
-    </div>
-  </header>
-
-  <div class="main-store">
-    <div class="about-section" id="aboutSection">
-      <h2>من نحن</h2>
-      <p>نحن شركة متخصصة في تقديم حلول رقمية متكاملة، تشمل تصميم وتطوير المتاجر الإلكترونية، وتطبيقات إدارة الأنشطة بمختلف أنواعها. كما نُبدع في تصميم الهويات البصرية وابتكار محتوى احترافي للسوشيال ميديا يعزز حضور علامتك التجارية ويُبرز تميزك في السوق.</p>
-      <button onclick="hideAboutSection()">العودة</button>
-    </div>
-    
-    <div class="contact-section" id="contactSection">
-      <h2>تواصل معنا</h2>
-      <p>البريد الإلكتروني: dodsmart7@gmail.com</p>
-      <input type="text" id="contactName" placeholder="اسمك">
-      <input type="email" id="contactEmail" placeholder="بريدك الإلكتروني">
-      <textarea id="contactMessage" placeholder="رسالتك"></textarea>
-      <button onclick="sendContactMessage()">إرسال الرسالة</button>
-      <button onclick="hideContactSection()">إلغاء</button>
-    </div>
-    
-    <h1>معروضات المتجر</h1>
-    
-    <!-- شريط البحث -->
-    <div class="search-container">
-      <input type="text" id="searchInput" placeholder="ابحث عن منتج...">
-      <button onclick="searchProducts()"><i class="fas fa-search"></i> بحث</button>
-    </div>
-    
-    <div id="products"></div>
-  </div>
-
-  <div class="admin-section">
-    <button onclick="logoutAdmin()">خروج الأدمن</button>
-    
-    <div class="admin-tabs">
-      <div class="admin-tab active" onclick="switchAdminTab('products-tab')">معروضات المتجر</div>
-      <div class="admin-tab" onclick="switchAdminTab('add-tab')">إضافة منتج</div>
-      <div class="admin-tab" onclick="switchAdminTab('orders-tab')">طلبات الشراء</div>
-      <div class="admin-tab" onclick="switchAdminTab('messages-tab')">رسائل العملاء</div>
-    </div>
-    
-    <div id="products-tab" class="admin-tab-content active">
-      <h2>إدارة معروضات المتجر</h2>
-      <div class="admin-products" id="adminProducts"></div>
-    </div>
-    
-    <div id="add-tab" class="admin-tab-content">
-      <h2>إضافة منتج جديد</h2>
-      <div class="admin-panel">
-        <input type="text" id="productName" placeholder="اسم المنتج">
-        <input type="text" id="productPrice" placeholder="السعر">
-        <textarea id="productDetails" placeholder="التفاصيل"></textarea>
-        <input type="file" id="productImageFile" accept="image/*">
-        <button onclick="addProduct()">إضافة منتج</button>
-      </div>
-    </div>
-    
-    <div id="orders-tab" class="admin-tab-content">
-      <h2>طلبات الشراء</h2>
-      <table id="ordersTable">
-        <tr><th>المنتج</th><th>الكمية</th><th>العميل</th><th>الهاتف</th><th>العنوان</th><th>إجراء</th></tr>
-      </table>
-    </div>
-    
-    <div id="messages-tab" class="admin-tab-content">
-      <h2>رسائل العملاء</h2>
-      <table id="messagesTable">
-        <tr><th>الاسم</th><th>البريد الإلكتروني</th><th>الرسالة</th><th>التاريخ</th><th>إجراء</th></tr>
-      </table>
-    </div>
-  </div>
-
-  <script>
+<header>
+<div class="header-left">
+<div class="top-buttons">
+<button onclick="showAboutSection()">من نحن</button>
+<button onclick="showContactSection()">تواصل معنا</button>
+</div>
+<div class="welcome">( مرحباً بك في SFW! تسوّق بذكاء واكتشف كل جديد! )</div>
+</div>
+<div class="header-right">
+<i class="fas fa-sign-in-alt login-icon" onclick="toggleLoginForm()"></i>
+</div>
+<div class="login-form" id="loginForm">
+<h2>تسجيل دخول الأدمن</h2>
+<input id="adminUser" placeholder="اسم المستخدم" type="text"/>
+<input id="adminPass" placeholder="كلمة المرور" type="password"/>
+<button onclick="loginAdmin()">دخول</button>
+<button onclick="toggleLoginForm()" style="background: #6c757d;">إلغاء</button>
+</div>
+</header>
+<div class="main-store">
+<div class="about-section" id="aboutSection">
+<h2>من نحن</h2>
+<p>نحن شركة متخصصة في تقديم حلول رقمية متكاملة، تشمل تصميم وتطوير المتاجر الإلكترونية، وتطبيقات إدارة الأنشطة بمختلف أنواعها. كما نُبدع في تصميم الهويات البصرية وابتكار محتوى احترافي للسوشيال ميديا يعزز حضور علامتك التجارية ويُبرز تميزك في السوق.</p>
+<button onclick="hideAboutSection()">العودة</button>
+</div>
+<div class="contact-section" id="contactSection">
+<h2>تواصل معنا</h2>
+<p>البريد الإلكتروني: dodsmart7@gmail.com</p>
+<input id="contactName" placeholder="اسمك" type="text"/>
+<input id="contactEmail" placeholder="بريدك الإلكتروني" type="email"/>
+<textarea id="contactMessage" placeholder="رسالتك"></textarea>
+<button onclick="sendContactMessage()">إرسال الرسالة</button>
+<button onclick="hideContactSection()">إلغاء</button>
+</div>
+<h1>معروضات المتجر</h1>
+<!-- شريط البحث -->
+<div class="search-container" style="justify-content: flex-end;"><input id="searchInput" placeholder="ابحث عن منتج..." style="flex: 1; max-width: 100%;" type="text"/><button class="search-icon-button" onclick="searchProducts()"><i class="fas fa-search"></i></button></div>
+<div id="products"></div>
+</div>
+<div class="admin-section">
+<button onclick="logoutAdmin()">خروج الأدمن</button>
+<div class="admin-tabs">
+<div class="admin-tab active" onclick="switchAdminTab('products-tab')">معروضات المتجر</div>
+<div class="admin-tab" onclick="switchAdminTab('add-tab')">إضافة منتج</div>
+<div class="admin-tab" onclick="switchAdminTab('orders-tab')">طلبات الشراء</div>
+<div class="admin-tab" onclick="switchAdminTab('messages-tab')">رسائل العملاء</div>
+</div>
+<div class="admin-tab-content active" id="products-tab">
+<h2>إدارة معروضات المتجر</h2>
+<div class="admin-products" id="adminProducts"></div>
+</div>
+<div class="admin-tab-content" id="add-tab">
+<h2>إضافة منتج جديد</h2>
+<div class="admin-panel">
+<input id="productName" placeholder="اسم المنتج" type="text"/>
+<input id="productPrice" placeholder="السعر" type="text"/>
+<textarea id="productDetails" placeholder="التفاصيل"></textarea>
+<input accept="image/*" id="productImageFile" type="file"/>
+<button onclick="addProduct()">إضافة منتج</button>
+</div>
+</div>
+<div class="admin-tab-content" id="orders-tab">
+<h2>طلبات الشراء</h2>
+<table id="ordersTable">
+<tr><th>المنتج</th><th>الكمية</th><th>العميل</th><th>الهاتف</th><th>العنوان</th><th>إجراء</th></tr>
+</table>
+</div>
+<div class="admin-tab-content" id="messages-tab">
+<h2>رسائل العملاء</h2>
+<table id="messagesTable">
+<tr><th>الاسم</th><th>البريد الإلكتروني</th><th>الرسالة</th><th>التاريخ</th><th>إجراء</th></tr>
+</table>
+</div>
+</div>
+<script>
     const firebaseConfig = {
       apiKey: "AIzaSyC0BkNX-62lynXzcGxhLu3QiJLvU4vOQOM",
       authDomain: "sfw-online-store.firebaseapp.com",
