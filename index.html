@@ -211,7 +211,7 @@
             transform: scale(1.1);
         }
 
-        #products, .admin-products {
+        .products-container {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
             gap: 20px;
@@ -625,6 +625,60 @@
             color: white;
         }
 
+        /* شريط تصفح الأقسام */
+        .categories-nav {
+            background: var(--card-bg);
+            padding: 10px 16px;
+            margin: 10px auto;
+            max-width: 1200px;
+            border-radius: var(--border-radius);
+            display: flex;
+            overflow-x: auto;
+            scrollbar-width: none;
+            border: 1px solid #444;
+        }
+        
+        .categories-nav::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .category-btn {
+            padding: 8px 16px;
+            margin: 0 5px;
+            background: #2a2a2a;
+            border-radius: 20px;
+            border: 1px solid var(--primary-color);
+            color: var(--primary-color);
+            cursor: pointer;
+            white-space: nowrap;
+            transition: var(--transition);
+            font-weight: bold;
+        }
+        
+        .category-btn:hover, .category-btn.active {
+            background: var(--primary-color);
+            color: #000;
+        }
+        
+        .section-title {
+            text-align: center;
+            margin: 30px 0 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--primary-color);
+            position: relative;
+        }
+        
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 3px;
+            background: var(--accent-color);
+        }
+
         /* تعديلات للهواتف الصغيرة */
         @media (max-width: 768px) {
             header {
@@ -650,7 +704,7 @@
                 font-size: 1.5rem;
             }
             
-            #products, .admin-products {
+            .products-container {
                 grid-template-columns: 1fr;
                 padding: 10px;
                 gap: 15px;
@@ -689,7 +743,7 @@
         
         /* تعديلات للأجهزة اللوحية */
         @media (min-width: 481px) and (max-width: 768px) {
-            #products, .admin-products {
+            .products-container {
                 grid-template-columns: repeat(2, 1fr);
             }
         }
@@ -785,7 +839,30 @@
 
     <!-- المتجر الرئيسي -->
     <div class="main-store">
-        <h1 id="mainTitle">معروضات المتجر</h1>
+        <!-- شريط تصفح الأقسام -->
+        <div class="categories-nav">
+            <div class="category-btn active" onclick="filterProducts('all')">الكل</div>
+            <div class="category-btn" onclick="filterProducts('design')">التصميمات</div>
+            <div class="category-btn" onclick="filterProducts('apps')">التطبيقات</div>
+            <div class="category-btn" onclick="filterProducts('advertising')">الدعاية والإعلان</div>
+            <div class="category-btn" onclick="filterProducts('video')">الفيديو</div>
+        </div>
+        
+        <!-- قسم التصميمات -->
+        <h2 class="section-title" id="design-section">التصميمات</h2>
+        <div class="products-container" id="design-products"></div>
+        
+        <!-- قسم التطبيقات -->
+        <h2 class="section-title" id="apps-section">التطبيقات</h2>
+        <div class="products-container" id="apps-products"></div>
+        
+        <!-- قسم الدعاية والإعلان -->
+        <h2 class="section-title" id="advertising-section">الدعاية والإعلان</h2>
+        <div class="products-container" id="advertising-products"></div>
+        
+        <!-- قسم الفيديو -->
+        <h2 class="section-title" id="video-section">الفيديو</h2>
+        <div class="products-container" id="video-products"></div>
         
         <!-- شريط البحث -->
         <div class="search-container">
@@ -794,8 +871,6 @@
                 <i class="fas fa-search"></i>
             </button>
         </div>
-        
-        <div id="products"></div>
     </div>
 
     <!-- لوحة التحكم الإدارية -->
@@ -811,7 +886,7 @@
         
         <div class="admin-tab-content active" id="products-tab">
             <h2>إدارة معروضات المتجر</h2>
-            <div class="admin-products" id="adminProducts"></div>
+            <div class="products-container" id="adminProducts"></div>
         </div>
         
         <div class="admin-tab-content" id="add-tab">
@@ -820,6 +895,13 @@
                 <input id="productName" placeholder="اسم المنتج" type="text" required/>
                 <input id="productPrice" placeholder="السعر" type="text" required/>
                 <textarea id="productDetails" placeholder="التفاصيل" required></textarea>
+                <select id="productCategory" required>
+                    <option value="">اختر القسم</option>
+                    <option value="design">التصميمات</option>
+                    <option value="apps">التطبيقات</option>
+                    <option value="advertising">الدعاية والإعلان</option>
+                    <option value="video">الفيديو</option>
+                </select>
                 <input accept="image/*" id="productImageFile" type="file" required/>
                 <button onclick="validateAndAddProduct()">إضافة منتج</button>
             </div>
@@ -886,24 +968,63 @@
         let allProducts = [];
         let currentUser = null;
         let lastScrollPosition = 0;
+        let activeCategory = 'all';
 
-        // ========== وظائف المتجر الرئيسي ==========
+        // تصفية المنتجات حسب القسم
+        function filterProducts(category) {
+            activeCategory = category;
+            
+            // تحديث الأزرار النشطة
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // إظهار/إخفاء الأقسام حسب التصنيف
+            const sections = ['design', 'apps', 'advertising', 'video'];
+            sections.forEach(section => {
+                const sectionEl = document.getElementById(`${section}-section`);
+                const productsEl = document.getElementById(`${section}-products`);
+                
+                if (category === 'all' || category === section) {
+                    sectionEl.style.display = 'block';
+                    productsEl.style.display = 'grid';
+                } else {
+                    sectionEl.style.display = 'none';
+                    productsEl.style.display = 'none';
+                }
+            });
+            
+            // إذا كان البحث نشطاً، نعيد تطبيقه على القسم المحدد
+            if (document.getElementById('searchInput').value.trim()) {
+                searchProducts();
+            }
+        }
 
-        // عرض المنتجات
+        // عرض المنتجات في الأقسام المناسبة
         function renderProducts(products = null) {
             const productsToRender = products || allProducts;
-            const container = document.getElementById('products');
-            container.innerHTML = '';
+            
+            // مسح جميع الأقسام أولاً
+            ['design', 'apps', 'advertising', 'video'].forEach(section => {
+                document.getElementById(`${section}-products`).innerHTML = '';
+            });
             
             if (productsToRender.length === 0) {
-                container.innerHTML = '<p style="grid-column: 1/-1; text-align: center;">لا توجد منتجات متاحة</p>';
+                const msg = '<p style="grid-column: 1/-1; text-align: center;">لا توجد منتجات متاحة</p>';
+                ['design', 'apps', 'advertising', 'video'].forEach(section => {
+                    document.getElementById(`${section}-products`).innerHTML = msg;
+                });
                 return;
             }
             
             productsToRender.forEach((product, index) => {
+                const category = product.category || 'design'; // افتراضي قسم التصميمات إذا لم يحدد
+                const container = document.getElementById(`${category}-products`);
+                
                 const card = document.createElement('div');
                 card.className = 'card';
-                card.style.animationDelay = `${index * 0.1}s`; // تأخير متدرج للبطاقات
+                card.style.animationDelay = `${index * 0.1}s`;
                 
                 let showMoreBtn = '';
                 if (product.details && product.details.length > 150) {
@@ -928,8 +1049,12 @@
                         </div>
                     </div>
                 `;
+                
                 container.appendChild(card);
             });
+            
+            // تطبيق التصفية الحالية بعد العرض
+            filterProducts(activeCategory);
         }
 
         // تبديل عرض التفاصيل
@@ -1029,6 +1154,10 @@
             }
             
             const filteredProducts = allProducts.filter(product => {
+                if (activeCategory !== 'all' && product.category !== activeCategory) {
+                    return false;
+                }
+                
                 const nameMatch = product.name?.toLowerCase().includes(searchTerm) || false;
                 const detailsMatch = product.details?.toLowerCase().includes(searchTerm) || false;
                 const priceMatch = product.price?.toString().includes(searchTerm) || false;
@@ -1134,6 +1263,12 @@
                             <input type="text" id="edit-name-${key}" value="${data.name || ''}" placeholder="اسم المنتج" required>
                             <input type="text" id="edit-price-${key}" value="${data.price || ''}" placeholder="السعر" required>
                             <textarea id="edit-details-${key}" placeholder="التفاصيل" required>${data.details || ''}</textarea>
+                            <select id="edit-category-${key}">
+                                <option value="design" ${data.category === 'design' ? 'selected' : ''}>التصميمات</option>
+                                <option value="apps" ${data.category === 'apps' ? 'selected' : ''}>التطبيقات</option>
+                                <option value="advertising" ${data.category === 'advertising' ? 'selected' : ''}>الدعاية والإعلان</option>
+                                <option value="video" ${data.category === 'video' ? 'selected' : ''}>الفيديو</option>
+                            </select>
                             <div class="order-buttons">
                                 <button onclick="validateAndUpdateProduct('${key}')">حفظ التعديلات</button>
                                 <button class="cancel" onclick="hideEditForm('${key}')">إلغاء</button>
@@ -1150,6 +1285,7 @@
             const name = document.getElementById('productName').value.trim();
             const price = document.getElementById('productPrice').value.trim();
             const details = document.getElementById('productDetails').value.trim();
+            const category = document.getElementById('productCategory').value;
             const fileInput = document.getElementById('productImageFile');
             
             if (!name || name.length < 3) {
@@ -1167,6 +1303,11 @@
                 return;
             }
             
+            if (!category) {
+                alert('يرجى اختيار قسم للمنتج');
+                return;
+            }
+            
             if (!fileInput.files[0]) {
                 alert('يرجى اختيار صورة للمنتج');
                 return;
@@ -1180,6 +1321,7 @@
             const name = document.getElementById('productName').value.trim();
             const price = document.getElementById('productPrice').value.trim();
             const details = document.getElementById('productDetails').value.trim();
+            const category = document.getElementById('productCategory').value;
             const fileInput = document.getElementById('productImageFile');
             
             const reader = new FileReader();
@@ -1189,7 +1331,8 @@
                 db.ref('products').push({ 
                     name: name, 
                     price: price, 
-                    details: details, 
+                    details: details,
+                    category: category,
                     image: imageData,
                     createdAt: firebase.database.ServerValue.TIMESTAMP
                 })
@@ -1204,6 +1347,7 @@
                     document.getElementById('productName').value = '';
                     document.getElementById('productPrice').value = '';
                     document.getElementById('productDetails').value = '';
+                    document.getElementById('productCategory').value = '';
                     fileInput.value = '';
                     
                     // التبديل إلى تبويب المنتجات
@@ -1242,6 +1386,7 @@
             const name = document.getElementById(`edit-name-${productId}`).value.trim();
             const price = document.getElementById(`edit-price-${productId}`).value.trim();
             const details = document.getElementById(`edit-details-${productId}`).value.trim();
+            const category = document.getElementById(`edit-category-${productId}`).value;
             
             if (!name || name.length < 3) {
                 alert('يرجى إدخال اسم المنتج (3 أحرف على الأقل)');
@@ -1258,6 +1403,11 @@
                 return;
             }
             
+            if (!category) {
+                alert('يرجى اختيار قسم للمنتج');
+                return;
+            }
+            
             updateProduct(productId);
         }
 
@@ -1266,11 +1416,13 @@
             const name = document.getElementById(`edit-name-${productId}`).value.trim();
             const price = document.getElementById(`edit-price-${productId}`).value.trim();
             const details = document.getElementById(`edit-details-${productId}`).value.trim();
+            const category = document.getElementById(`edit-category-${productId}`).value;
             
             db.ref('products/' + productId).update({
                 name: name,
                 price: price,
                 details: details,
+                category: category,
                 updatedAt: firebase.database.ServerValue.TIMESTAMP
             })
             .then(() => {
@@ -1533,7 +1685,7 @@
         // تأثير اهتزاز العناوين عند التمرير
         window.addEventListener('scroll', function() {
             const currentScrollPosition = window.pageYOffset;
-            const mainTitle = document.getElementById('mainTitle');
+            const mainTitle = document.getElementById('design-section');
             
             if (Math.abs(currentScrollPosition - lastScrollPosition) > 50) {
                 mainTitle.classList.add('scrolled');
@@ -1549,6 +1701,7 @@
                 snapshot.forEach(child => {
                     allProducts.push({
                         id: child.key,
+                        category: child.val().category || 'design', // افتراضي قسم التصميمات
                         ...child.val()
                     });
                 });
